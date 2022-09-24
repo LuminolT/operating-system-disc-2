@@ -24,4 +24,4 @@ commit格式：`<operations>: <content>`
 
 例：`Update: subexp-1`，`Finish: 1,4,7`
 
-完成后Pull Request到`master`分支
+完成后Pull Request到`main`分支
