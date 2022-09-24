@@ -1,6 +1,7 @@
 # operating-system-disc-2
 操作系统(1) 研讨2代码仓库
 
+研讨题内容请参照：[利用信号量集解决Reader-and-Writer问题](problem.md)
 
 ### DDLs
 
