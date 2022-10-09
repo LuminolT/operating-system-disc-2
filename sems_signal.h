@@ -10,8 +10,8 @@ typedef struct
 	int waits;
 }sems_t;
 
-int Swait(sems_t *sems, int t, int d){
-	if(sems->value - d < t){
+int P(sems_t *sems, int t, int d){
+	if(sems->value < t){
 		sems->waits++;
 		sem_wait(&(sems->sem));
 	}
@@ -19,7 +19,7 @@ int Swait(sems_t *sems, int t, int d){
 	return 0;
 }
 
-int Ssignal(sems_t *sems, int t, int d){
+int V(sems_t *sems, int d){
 	sems->value += d;
 	if(sems->waits > 0){
 		sems->waits--;

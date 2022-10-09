@@ -1,4 +1,4 @@
-// #include "sem_s.h"
+// #include "sems.h"
 #include"sems_signal.h"
 #include <unistd.h>
 #include <pthread.h>
@@ -12,18 +12,46 @@ sems_t mx;
 
 int a=1;
 
+// void* reader(void *arg)
+// {
+//     while (1)
+//     {
+//         P(&mx,1,0);
+//         P(&L,0,1);
 
+//         printf("%d\n",a);
+
+//         V(&L,1, 1);
+//         sleep(1);
+//     }
+//     return NULL;
+// }
+
+// void* writer(void *arg)
+// {
+//     while (1)
+//     {
+//         P(&mx,0,1);
+//         P(&L,RN,0);
+
+//         a++;
+
+//         V(&mx,1,1);
+//         sleep(2);
+//     }
+//     return NULL;
+// }
 
 void* reader(void *arg)
 {
     while (1)
     {
-        Swait(&mx,1,0);
-        Swait(&L,0,1);
+        P(&mx,1,0);
+        P(&L,0,1);
 
         printf("%d\n",a);
 
-        Ssignal(&L,0,1);
+        V(&L,1);
         sleep(1);
     }
     return NULL;
@@ -33,12 +61,13 @@ void* writer(void *arg)
 {
     while (1)
     {
-        Swait(&mx,0,1);
-        Swait(&L,RN,0);
+        P(&mx,0,1);
+        P(&L,RN,RN);
 
         a++;
 
-        Ssignal(&mx,1,1);
+        V(&mx,1);
+        V(&L, RN);
         sleep(2);
     }
     return NULL;
