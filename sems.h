@@ -17,7 +17,7 @@ void sem_s_init(sem_s *sem)
     pthread_cond_init(&(sem->cond),NULL);
 }
 
-void Swait(sem_s *sem,int t,int d)
+void P(sem_s *sem,int t,int d)
 {
     pthread_mutex_lock(&(sem->mutex));
     sem->values -= d;
@@ -32,7 +32,7 @@ void Swait(sem_s *sem,int t,int d)
     pthread_mutex_unlock(&(sem->mutex));
 }
 
-void Ssignal(sem_s *sem,int t,int d)
+void V(sem_s *sem,int t,int d)
 {
     pthread_mutex_lock(&(sem->mutex));
     sem->values += d;
