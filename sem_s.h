@@ -7,6 +7,7 @@ typedef struct
 {
     int values;
     int wakeup;
+    int wait;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
 }sem_s;
@@ -20,26 +21,32 @@ void sem_s_init(sem_s *sem)
 void Swait(sem_s *sem,int t,int d)
 {
     pthread_mutex_lock(&(sem->mutex));
-    sem->values -= d;
-    if (sem->values<t)
+    // sem->values -= d;
+    // if (sem->values<t)
+    // {
+    //     do
+    //     {
+    //         pthread_cond_wait(&(sem->cond), &(sem->mutex));
+    //     } while (sem->wakeup==0);
+    //     sem->wakeup -=d;
+    // }
+    while (sem->values-d<t)
     {
-        do
-        {
-            pthread_cond_wait(&(sem->cond), &(sem->mutex));
-        } while (sem->wakeup==0);
-        sem->wakeup --;
+        sem->wakeup++;
+        pthread_cond_wait(&(sem->cond),&(sem->mutex));
     }
+    
     pthread_mutex_unlock(&(sem->mutex));
 }
 
-void Ssignal(sem_s *sem,int t,int d)
+void Ssignal(sem_s *sem,int d)
 {
     pthread_mutex_lock(&(sem->mutex));
     sem->values += d;
-    if (sem->values<=t)
+    if (sem->wait>0)
     {
-        sem->wakeup ++;
-        pthread_cond_signal(&(sem->cond));
+        pthread_cond_broadcast(&(sem->cond));
+        sem->wakeup=0;
     }
     pthread_mutex_unlock(&(sem->mutex));
 }

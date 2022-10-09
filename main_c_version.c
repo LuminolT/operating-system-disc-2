@@ -17,8 +17,8 @@ void* reader(void *arg)
 
         printf("%d\n",a);
 
-        Ssignal(&L,0,1);
-        sleep(1);
+        Ssignal(&L,1);
+        // sleep(1);
      }
      return NULL;
  }
@@ -32,7 +32,7 @@ void* writer(void *arg)
 
         a++;
 
-        Ssignal(&mx,1,1);
+        Ssignal(&mx,1);
         sleep(2);
     }
     return NULL;
