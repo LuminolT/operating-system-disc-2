@@ -15,7 +15,7 @@
 │
 ├─doc
 │      problem.md               问题描述文档
-│      pthread.md               补充pthreads库使用文档
+│      pthreads.md              补充pthreads库使用文档
 │
 └─old
         RWquestion.c            已弃用，读者-写者问题解决尝试
