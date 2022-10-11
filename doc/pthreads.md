@@ -20,7 +20,134 @@ POSIX 为我们提供了线程库 (pthreads)，这是在多核平台上进行并
 > Recall：在体系结构课中，我们使用了[OpenMP](https://en.wikipedia.org/wiki/OpenMP)，也是并发编程的一套接口，
 其规范在编译器上实现，相较于pthreads更易于扩展。
 
-## 1 线程创建和使用
+## 1 线程的创建和使用
+
+### 1.1 主要函数接口
+
+| 函数名                         | 功能                       |
+| :---------------------------: | :-----------------------: |
+| `int pthread_create()`		| 创建线程					|
+| `int pthread_detach()`		| 分离线程					|
+| `int pthread_equal()`			| 比较线程 ID				|
+| `void pthread_exit()`			| 终止线程					|
+| `int pthread_join()`			| 挂起并等待指定线程终止		|
+| `int pthread_kill()`			| 向线程发送信号			|
+| `int pthread_once()`			| 仅一次调用指定函数		|
+| `pthread_t pthread_self()`	| 返回线程 ID				|
+| `int pthread_cancel()`		| 向线程发送取消信号			|
+| `int pthread_setcancelstate()`| 设置本线程对取消信号的反应		|
+| `int pthread_setcanceltype()`	| 设置本线程取消动作的执行时机		|
+| `void pthread_testcancel()`	| 创建线程取消点				|
+
+### 1.2 接口用法
+
+#### 1.2.1 创建线程
+
+```c
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+			void *(*start_routine)(void *), void *arg)
+```
+
+- `pthread_t *thread` ：传递一个 `pthread_t` 类型的指针变量，也可以直接传递某个 `pthread_t` 类型变量的地址。
+
+- `const pthread_attr_t *attr`：用于手动设置新建线程的属性，例如线程的调用策略、线程所能使用的栈内存的大小等。大部分场景中，我们都不需要手动修改线程的属性，将 `attr` 参数赋值为 `NULL`，`pthread_create()` 函数会采用系统默认的属性值创建线程。
+
+- `void *(*start_routine) (void *)`：以函数指针的方式指明新建线程需要调用的函数，该函数的参数最多有 1 个（可以省略不写），形参和返回值的类型都必须为 `void*` 类型。
+
+- `void *arg`：指定传递给 `start_routine` 函数的实参，当不需要传递任何数据时，将 `arg` 赋值为 `NULL` 即可。
+
+#### 1.2.2 分离线程
+
+```c
+int pthread_detach(pthread_t thread)
+```
+
+- 表示线程运行结束后资源可被回收（线程所占用堆栈和线程描述符）。
+
+#### 1.2.3 比较线程 ID
+
+```c
+int pthread_equal(pthread_t t1, pthread_t t2)
+```
+
+- 比较线程 `t1` 和 `t2` 的线程 ID。如果相等，返回非零值；如果不相等，返回 0。
+
+#### 1.2.4 终止线程
+
+```c
+void pthread_exit(void *value_ptr)
+```
+
+- `void *value_ptr`： 可以指向任何类型的数据，它指向的数据将作为线程退出时的返回值。如果线程不需要返回任何数据，将参数置为 `NULL` 即可。
+
+#### 1.2.5 挂起并等待指定线程终止
+
+```c
+int pthread_join(pthread_t thread, void **value_ptr)
+```
+
+- `pthread_t thread`：等待终止的目标线程。
+- `void **value_ptr`：接收到的返回值，为 `void pthread_exit(void *value_ptr)` 中 `void *value_ptr` 指向的内容。
+- 如果调用 `int pthread_join()` 函数的线程被取消，目标线程不会被分离。
+
+#### 1.2.6 向线程发送信号
+
+```c
+int pthread_kill(pthread_t thread, int sig)
+```
+
+- `sig`：向指定线程 `pthread_t thread` 发送的信号。
+
+#### 1.2.7 仅一次调用指定函数
+
+```c
+pthread_once_t once_control = PTHREAD_ONCE_INIT;
+int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
+```
+
+- `pthread_once_t *once_control`：指定函数 `init_routine` 是否被调用的标志，需赋初值 `PTHREAD_ONCE_INIT` 以保证 `int pthread_once()` 函数正常调用。
+- `void (*init_routine)(void)`：指定函数 `init_routine`，在 `once_control` 值为 `PTHREAD_ONCE_INIT` 时，可被正常调用，随后使用再次调用 `int pthread_once()` 函数与相同 `once_control`，将不会再次调用 `init_routine` 函数。
+
+#### 1.2.8 返回线程 ID
+
+```c
+pthread_t pthread_self(void)
+```
+
+- 返回调用该函数的线程的线程 ID。
+
+#### 1.2.9 向线程发送取消信号
+
+```c
+int pthread_cancel(pthread_t thread)
+```
+
+- 发送终止信号给 `thread` 线程，如果成功则返回 0，否则为非 0 值。发送成功并不意味着 `thread` 会终止。
+
+#### 1.2.10 设置本线程对取消信号的反应
+
+```c
+int pthread_setcancelstate(int state, int *oldstate)
+```
+
+- `int state` ：具有两种取值 `PTHREAD_CANCEL_ENABLE`（缺省）和 `PTHREAD_CANCEL_DISABLE`，
+分别表示收到信号后设为 CANCLED 状态和忽略 CANCEL 信号继续运行；`old_state` 如果不为 `NULL` 则存入原来的 Cancel 状态以便恢复。
+
+#### 1.2.11 设置本线程取消动作的执行时机
+
+```c
+int pthread_setcanceltype(int type, int *oldtype)
+```
+
+- `int type` ：具有两种取值 `PTHREAD_CANCEL_DEFFERED` 和 `PTHREAD_CANCEL_ASYCHRONOUS`，仅当 Cancel 状态为 Enable 时有效，分别表示收到信号后继续运行至下一个取消点再退出和立即执行取消动作（退出）；`oldtype` 如果不为 `NULL` 则存入运来的取消动作类型值。
+
+#### 1.2.12 创建线程取消点
+
+```c
+void pthread_testcancel(void)
+```
+
+- 在不包含取消点，但是又需要取消点的地方创建一个取消点，以便在一个没有包含取消点的执行代码线程中响应取消请求。
 
 ## 2 同步原语
 
