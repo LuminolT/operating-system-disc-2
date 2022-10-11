@@ -1,15 +1,26 @@
 # operating-system-disc-2
 操作系统(1) 研讨2代码仓库
 
-研讨题内容请参照：[利用信号量集解决Reader-and-Writer问题](problem.md)
+研讨题内容请参照：[利用信号量集解决Reader-and-Writer问题](doc/problem.md)
 
-### DDLs
+补充内容请参照：[pthreads库使用](doc/pthreads.md)
 
-!! 10/4: 完成Slides
+### 仓库结构
 
-!! 10/7: 完成Report
-
-> 后续可能会有更改内容
+```
+│  main.c                       主程序
+│  README.md                    README文档
+│  sems_from_pthread.h          信号量集：互斥锁和条件变量实现
+│  sems_from_semaphore.h        信号量集：信号量实现
+│
+├─doc
+│      problem.md               问题描述文档
+│      pthread.md               补充pthreads库使用文档
+│
+└─old
+        RWquestion.c            已弃用，读者-写者问题解决尝试
+        sems_from_cpp.h         已弃用，信号量集C++实现
+```
 
 ### 注意
 
