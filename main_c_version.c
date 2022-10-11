@@ -53,9 +53,9 @@ void* reader(void *arg)
 
         V(&L,1);
         sleep(1);
-    }
-    return NULL;
-}
+     }
+     return NULL;
+ }
 
 void* writer(void *arg)
 {
