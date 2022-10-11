@@ -1,4 +1,4 @@
-# A Simple Introduction to pthread.h
+# A Simple Introduction to pthreads
 
 ## Lead in
 
