@@ -153,29 +153,238 @@ void pthread_testcancel(void)
 
 ### 2.1 互斥锁
 
-#### 主要函数接口
+#### 2.1.1主要函数接口
 
-| 函数名                    | 功能             |
-| ------------------------- | ---------------- |
-| `pthread_mutex_init()`    | 初始化一个互斥锁 |
-| `pthread_mutex_destroy()` | 销毁一个互斥锁   |
-| `pthread_mutex_lock()`    | 加锁             |
-| `pthread_mutex_trylock()` | 尝试加锁         |
-| `pthread_mutex_unlock()`  | 解锁             |
+|          函数名           |       功能       |
+| :-----------------------: | :--------------: |
+|  `pthread_mutex_init()`   | 初始化一个互斥锁 |
+| `pthread_mutex_destroy()` |  销毁一个互斥锁  |
+|  `pthread_mutex_lock()`   |       加锁       |
+| `pthread_mutex_trylock()` |     尝试加锁     |
+| `pthread_mutex_unlock()`  |       解锁       |
 
-#### 接口用法
+#### 2.1.2接口用法
 
-
-#### 程序样例
+##### 2.1.2.1初始化一个互斥锁(互斥量)
 
 ```c
+int pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr);
+```
 
+- **mutex**：传出参数，调用时应传 **&mutex**
 
+- **attr**：互斥量属性。是一个传入参数，通常传**NULL**，选用**默认属性**(线程间共享)。
+
+- 互斥锁初始化有两种方式：
+
+1. 静态初始化：如果互斥锁 **mutex** 是静态分配的（定义在全局，或加了static关键字修饰），可以直接使用宏进行初始化。`e.g.  pthead_mutex_t	muetx = PTHREAD_MUTEX_INITIALIZER;`
+
+2. 动态初始化：局部变量应采用动态初始化。`e.g.  pthread_mutex_init(&mutex, NULL)`
+
+##### 2.1.2.2 **加锁**
+
+```c
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+```
+
+- 可视作mutex--
+
+##### 2.1.2.3 **尝试加锁**
+
+```c
+int pthread_mutex_trylock(pthread_mutex_t *mutex);
+```
+
+#### 2.1.2.4**解锁**
+
+```c
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+```
+
+- 可视作mutex++
+
+#### 2.1.2.5**销毁互斥锁**
+
+```c
+int pthread_mutex_destroy(pthread_mutex_t *mutex);
 ```
 
 ### 2.2 条件变量
 
+#### 2.2.1主要函数接口
+
+|           函数名           |                功能                |
+| :------------------------: | :--------------------------------: |
+|   `pthread_cond_init()`    |         初始化一个条件变量         |
+|   `pthread_cond_wait()`    |        阻塞等待一个条件变量        |
+| `pthread_cond_timedwait()` |        限时等待一个条件变量        |
+|  `pthread_cond_signal()`   | 唤醒至少一个阻塞在条件变量上的线程 |
+| `pthread_cond_broadcast()` |   唤醒全部阻塞在条件变量上的线程   |
+|  `pthread_cond_destroy()`  |          销毁一个条件变量          |
+
+#### 2.2.2接口用法
+
+##### 2.2.2.1**初始化一个条件变量**
+
+```c
+int pthread_cond_init(pthread_cond_t *restrict cond, const pthread_condattr_t *restrict attr); 
+```
+
+- **cond**：传出参数，传出参数，调用时应传 &mutex
+
+- **attr**：attr表条件变量属性，通常为默认值，传NULL即可
+
+- 可以使用静态初始化的方法，初始化条件变量：
+
+```c
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+```
+
+##### 2.2.2.2**阻塞等待一个条件变量**
+
+```c
+int pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex); 
+```
+
+- 函数作用：
+
+1. 阻塞等待条件变量cond（参1）满足
+2. 释放已掌握的互斥锁（解锁互斥量）相当于`pthread_mutex_unlock(&mutex);`
+
+ 	**1,2两步为一个原子操作。**
+
+3. 当被唤醒，`pthread_cond_wait函数返回时，解除阻塞并重新申请获取互斥锁`pthread_mutex_lock(&mutex);
+
+##### 2.2.2.3**限时等待一个条件变量** 
+
+```c
+int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict abstime); 
+```
+
+- **abstime：**
+
+查看struct timespec结构体。
+
+```c
+struct timespec {
+time_t tv_sec; /* seconds */ 秒
+long  tv_nsec; /* nanosecondes*/ 纳秒
+}
+```
+
+**形参abstime使用的是绝对时间。**
+
+如：time(NULL)返回的就是绝对时间。而alarm(1)是相对时间，相对当前时间定时1秒钟。初始化`struct timespec t = {1, 0};`则`pthread_cond_timedwait (&cond, &mutex, &t);` 只能定时到 1970年1月1日 00:00:01秒 。
+
+**正确用法：**
+
+使用`time_t cur = time(NULL); `获取当前时间。
+
+初始化`struct timespec t;` 定义timespec 结构体变量t
+
+令`t.tv_sec = cur+1;` 定时1秒
+
+再进行传参`pthread_cond_timedwait (&cond, &mutex, &t); `传参 
+
+##### 2.2.2.4.**唤醒至少一个阻塞在条件变量上的线程** 
+
+```c
+int pthread_cond_signal(pthread_cond_t *cond); 
+```
+
+##### 2.2.2.5**唤醒全部阻塞在条件变量上的线程** 
+
+```c
+int pthread_cond_broadcast(pthread_cond_t *cond); 
+```
+
+##### 2.2.2.6**销毁一个条件变量** 
+
+```c
+int pthread_cond_destroy(pthread_cond_t *cond); 
+```
+
+
+
+
+
 ### 2.3 读写锁
+
+#### 2.3.1主要函数接口
+
+| 函数名                         | 功能             |
+| :----------------------------: | :--------------: |
+| ` int pthread_rwlock_init()`   | 初始化一个读写锁 |
+| `int pthread_rwlock_rdlock()`  | 加读锁           |
+| ` int pthread_rwlock_wrlock()` | 加写锁           |
+| `int pthread_rwlock_tryrdlock()` | 尝试获得读模式的读写锁 |
+| ` int pthread_rwlock_trywrlock()` | 尝试获得写模式的读写锁 |
+| ` int pthread_rwlock_unlock()` | 释放读写锁       |
+| `int pthread_rwlock_destroy()` | 销毁读写锁       |
+
+#### 2.3.2接口用法
+
+##### 2.3.2.1 **初始化一个读写锁**
+
+```c
+int pthread_rwlock_init(pthread_rwlock_t * rwlock,  const pthread_rwlockattr_t *  attr);
+```
+
+- rwclock为读写锁指针，attr为读写锁属性指针。
+
+- 函数按读写锁属性对读写锁进行初始化。如果 attr 为 NULL，则使⽤缺省的读写锁属性，其作⽤与传递缺省读写锁属性对象的地址相同。初始化读写锁之后，该锁可以使⽤任意次数，⽽⽆需重新初始化。
+
+##### 2.3.2.2 **加读锁** 
+
+```c
+ int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+```
+
+- 在读模式下锁定读写锁，成功返回０，否则返回错误编号，
+
+- 错误返回值的定义只是针对不正确使用读写锁的情况(如未经初始化的锁)，或者试图获取已拥有的锁从而可能产生死锁的情况。
+
+##### 2.3.2.3 **加写锁**
+
+```c
+int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+```
+
+- 在写模式下锁定读写锁,返回值如加读锁
+
+##### 2.3.2.4 **尝试获得读模式的读写锁**
+
+```c
+int pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock);
+```
+
+- 如果可以获取返回0，不可以获取出错返回EBUSY
+
+##### 2.3.2.5 **尝试获得写模式的读写锁** 
+
+```c
+int pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock);
+```
+
+- 如果可以获取返回0，不可以获取出错返回EBUSY
+
+##### 2.3.2.6 **释放读写锁**
+
+```c
+int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+```
+
+- 释放读写锁，包括读锁与写锁
+
+##### 2.3.2.7 **销毁读写锁**
+
+```c
+ int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
+```
+
+- 此函数只是反初始化读写锁变量，并没有释放内存空间，如果读写锁变量是通过malloc等函数申请的，那么需要在free掉读写锁变量之前调用pthread_rwlock_destory函数。
+
+
 
 ## 3 线程API的使用准则
 
