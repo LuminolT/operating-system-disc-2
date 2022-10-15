@@ -1,12 +1,10 @@
-#include "sems_from_semaphore.h"
+// #include "sems.h"
+#include "sems_from_pthread.h"
 #include <unistd.h>
 #include <pthread.h>
+#include <stdio.h>
 #include <processthreadsapi.h>
-
-const int RN = 10;
-// sem_s L={RN,0};
-// sem_s mx={1,0};
-
+const int RN = 3;
 sems_t L;
 sems_t mx;
 
@@ -19,7 +17,9 @@ void *reader(void *arg)
         printf("thread %d is waiting to read\n", GetCurrentThreadId());
         sems_wait(&mx, 1, 0);
         sems_wait(&L, 0, 1);
+
         printf("thread %d reading\n", GetCurrentThreadId());
+        sleep(2);
         sems_signal(&L, 1);
         sleep(1);
     }
@@ -30,20 +30,23 @@ void *writer(void *arg)
 {
     while (1)
     {
-        sems_wait(&mx, 1, 1);
-        sems_wait(&L, RN, RN);
+
+        sems_wait(&mx, 0, 1);
+        sems_wait(&L, RN, 0);
+
         printf("thread %d begin to write.\n", GetCurrentThreadId());
         sleep(1);
         printf("thread %d end writing.\n", GetCurrentThreadId());
+
         sems_signal(&mx, 1);
-        sems_signal(&L, RN);
-        sleep(5);
+        sleep(2);
     }
     return NULL;
 }
 
 void test()
 {
+
     sems_init(&L, RN);
     sems_init(&mx, 1);
     pthread_t write, read, read1, read2;
@@ -59,6 +62,6 @@ void test()
 
 int main(int argc, char *argv[])
 {
-    printf("semaphore\n");
+    printf("pthread\n");
     test();
 }
