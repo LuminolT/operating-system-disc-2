@@ -1,4 +1,3 @@
-// #include "sems.h"
 #include "sems_from_pthread.h"
 #include <unistd.h>
 #include <pthread.h>
@@ -62,6 +61,6 @@ void test()
 
 int main(int argc, char *argv[])
 {
-    printf("pthread\n");
+    printf("-------pthread------\n");
     test();
 }

@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <stdio.h>
 
 typedef struct
 {
@@ -19,7 +20,7 @@ void sems_init(sems_t *sem, int v)
 void sems_wait(sems_t *sem, int t, int d)
 {
     pthread_mutex_lock(&(sem->mutex));
-    while (sem->values - d < t)
+    if (sem->values - d < t)
     {
         sem->wakeup++;
         pthread_cond_wait(&(sem->cond), &(sem->mutex));

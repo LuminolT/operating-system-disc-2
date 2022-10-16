@@ -4,8 +4,6 @@
 #include <processthreadsapi.h>
 
 const int RN = 10;
-// sem_s L={RN,0};
-// sem_s mx={1,0};
 
 sems_t L;
 sems_t mx;
@@ -20,6 +18,7 @@ void *reader(void *arg)
         sems_wait(&mx, 1, 0);
         sems_wait(&L, 0, 1);
         printf("thread %d reading\n", GetCurrentThreadId());
+        sleep(2);
         sems_signal(&L, 1);
         sleep(1);
     }
@@ -37,7 +36,7 @@ void *writer(void *arg)
         printf("thread %d end writing.\n", GetCurrentThreadId());
         sems_signal(&mx, 1);
         sems_signal(&L, RN);
-        sleep(5);
+        sleep(2);
     }
     return NULL;
 }
@@ -59,6 +58,6 @@ void test()
 
 int main(int argc, char *argv[])
 {
-    printf("semaphore\n");
+    printf("------semaphore------\n");
     test();
 }
