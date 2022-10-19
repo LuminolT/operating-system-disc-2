@@ -10,12 +10,12 @@ typedef struct {
 } sems_t;
 
 int sems_wait(sems_t *sems, int t, int d) {
-    if (sems->value < t) {
-        sems->wakeup++;
-        sem_wait(&(sems->sem));
-    }
-    sems->value -= d;
-    return 0;
+	while (sems->value < t) {
+		sems->wakeup++;
+		sem_wait(&(sems->sem));
+	}
+	sems->value -= d;
+	return 0;
 }
 
 int sems_signal(sems_t *sems, int d) {
