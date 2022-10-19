@@ -8,7 +8,9 @@
 ### 仓库结构
 
 ```
-│  main.c                       主程序
+│  .clang-format                Clang format file
+│  main_reader_priv.c           主程序（读者优先）
+│  main_writer_priv.c           主程序（写者优先）
 │  README.md                    README文档
 │  sems_from_pthread.h          信号量集：互斥锁和条件变量实现
 │  sems_from_semaphore.h        信号量集：信号量实现
