@@ -20,7 +20,7 @@ void sems_init(sems_t *sem, int v)
 void sems_wait(sems_t *sem, int t, int d)
 {
     pthread_mutex_lock(&(sem->mutex));
-    if (sem->values < t)
+    while (sem->values < t)
     {
         sem->wakeup++;
         pthread_cond_wait(&(sem->cond), &(sem->mutex));

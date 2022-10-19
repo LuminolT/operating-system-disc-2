@@ -12,7 +12,7 @@ typedef struct
 
 int sems_wait(sems_t *sems, int t, int d)
 {
-	if (sems->value < t)
+	while (sems->value < t)
 	{
 		sems->wakeup++;
 		sem_wait(&(sems->sem));
